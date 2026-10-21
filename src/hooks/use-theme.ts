@@ -1,14 +1,21 @@
 /**
- * Learn more about light and dark modes:
- * https://docs.expo.dev/guides/color-schemes/
+ * Returns the active theme, following the system colour scheme.
  */
 
-import { Colors } from '@/constants/theme';
+import { Colors, Radius, Spacing, Typography } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
 export function useTheme() {
   const scheme = useColorScheme();
-  const theme = scheme === 'dark' ? 'dark' : 'light';
+  const isDark = scheme === 'dark';
 
-  return Colors[theme];
+  return {
+    colors: isDark ? Colors.dark : Colors.light,
+    isDark,
+    spacing: Spacing,
+    radius: Radius,
+    typography: Typography,
+  };
 }
+
+export type Theme = ReturnType<typeof useTheme>;

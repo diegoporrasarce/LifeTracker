@@ -1,56 +1,46 @@
-# Welcome to your Expo app 👋
+# LifeTracker
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+App móvil para llevar el control de tu vida con [Expo](https://expo.dev) y [Expo Go](https://expo.dev/go). Todo se guarda **solo en el dispositivo** (AsyncStorage), sin cuentas, sin servidores y sin información personal.
 
-## Get started
+## Funcionalidades
 
-1. Install dependencies
+- **Tareas** — pendientes, agrupadas por vencimiento, con prioridad, fecha y notas.
+- **Calendario** — registra lo que has hecho (`Hecho`) y lo que te toca (`Me toca`). También muestra las tareas sin completar.
+- **Cartera** — cuentas bancarias y brókeres. Separa **dinero en cartera (efectivo)** e **invertido** por mes, con evolución mensual y gráfico apilado.
+- **Gastos fijos** — importe mensual, categoría, día de cobro, totales anuales y cuánto queda tras estimar ingresos.
+- **Deudas** — `Me deben` / `Yo debo`, en **dinero** o **sin cantidad** (cosas como un gorro o un libro). Se pueden marcar como saldadas.
+- **Ajustes** — ingresos mensuales, **exportar/importar copia JSON** (compartir/pegar), cargar datos de ejemplo o borrar todo. Aviso de privacidad.
 
-   ```bash
-   npm install
-   ```
+## Tecnologías
 
-2. Start the app
+- [Expo SDK 58](https://docs.expo.dev/versions/v58.0.0/) + [Expo Router](https://docs.expo.dev/router/introduction/)
+- [React Native 0.88](https://reactnative.dev/) + [React 19](https://react.dev/)
+- [TypeScript](https://www.typescriptlang.org/)
+- [Native Tabs](https://docs.expo.dev/router/advanced/native-tabs/) (móvil) con fallback web
+- [@react-native-async-storage/async-storage](https://react-native-async-storage.github.io/async-storage/)
+- [react-native-svg](https://github.com/software-mansion/react-native-svg) para el gráfico de cartera
 
-   ```bash
-   npx expo start
-   ```
+## Requisitos
 
-In the output, you'll find options to open the app in a
+- [Node.js](https://nodejs.org/) LTS (el proyecto se ha probado con Node 20; Expo CLI avisa si la versión es muy antigua)
+- [Expo Go](https://expo.dev/go) en Android/iOS, o un emulador/simulador
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **src/app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## Ejecutar en local
 
 ```bash
-npm run reset-project
+npm install
+npx expo start
 ```
 
-This command will move the starter code to the **example** directory and create a blank **src/app** directory where you can start developing.
+Escanea el QR con **Expo Go** (Android) o con la app Cámara (iOS).
 
-### Other setup steps
+## Privacidad
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+**No contiene datos personales.** Toda la información que añadas permanece en tu dispositivo. La función "Exportar" solo comparte el JSON que tú decidas con la app que elijas.
 
-## Learn more
+## Notas
 
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+- Las fechas se guardan como `YYYY-MM-DD` y los meses como `YYYY-MM`.
+- Formato de moneda europeo (`1.234,56 €`).
+- Los balances de cartera se van guardando **por mes**; si falta un mes, el gráfico arrastra el último balance conocido.
+- Los iconos de las pestañas usan SF Symbols en iOS y Material Symbols en Android (según lo que incluye Expo Go).
