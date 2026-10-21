@@ -28,8 +28,22 @@ function RootNavigator() {
 
   if (!ready) return null;
 
+  const base = theme.isDark ? DarkTheme : DefaultTheme;
+  const navigationTheme = {
+    ...base,
+    colors: {
+      ...base.colors,
+      primary: theme.colors.primary,
+      background: theme.colors.background,
+      card: theme.colors.background,
+      text: theme.colors.text,
+      border: theme.colors.border,
+      notification: theme.colors.danger,
+    },
+  };
+
   return (
-    <ThemeProvider value={theme.isDark ? DarkTheme : DefaultTheme}>
+    <ThemeProvider value={navigationTheme}>
       <StatusBar style={theme.isDark ? 'light' : 'dark'} />
       <Stack
         screenOptions={{
@@ -37,7 +51,6 @@ function RootNavigator() {
           headerTintColor: theme.colors.text,
           headerTitleStyle: { color: theme.colors.text, fontWeight: '700' },
           headerShadowVisible: false,
-          headerBackButtonDisplayMode: 'minimal',
           contentStyle: { backgroundColor: theme.colors.background },
         }}>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />

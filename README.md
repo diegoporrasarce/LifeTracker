@@ -13,10 +13,9 @@ App móvil para llevar el control de tu vida con [Expo](https://expo.dev) y [Exp
 
 ## Tecnologías
 
-- [Expo SDK 58](https://docs.expo.dev/versions/v58.0.0/) + [Expo Router](https://docs.expo.dev/router/introduction/)
-- [React Native 0.88](https://reactnative.dev/) + [React 19](https://react.dev/)
+- [Expo SDK 57](https://docs.expo.dev/versions/v57.0.0/) + [Expo Router](https://docs.expo.dev/router/introduction/)
+- [React Native 0.86](https://reactnative.dev/) + [React 19](https://react.dev/)
 - [TypeScript](https://www.typescriptlang.org/)
-- [Native Tabs](https://docs.expo.dev/router/advanced/native-tabs/) (móvil) con fallback web
 - [@react-native-async-storage/async-storage](https://react-native-async-storage.github.io/async-storage/)
 - [react-native-svg](https://github.com/software-mansion/react-native-svg) para el gráfico de cartera
 
@@ -43,4 +42,4 @@ Escanea el QR con **Expo Go** (Android) o con la app Cámara (iOS).
 - Las fechas se guardan como `YYYY-MM-DD` y los meses como `YYYY-MM`.
 - Formato de moneda europeo (`1.234,56 €`).
 - Los balances de cartera se van guardando **por mes**; si falta un mes, el gráfico arrastra el último balance conocido.
-- Los iconos de las pestañas usan SF Symbols en iOS y Material Symbols en Android (según lo que incluye Expo Go).
+- Los iconos de las pestañas usan la fuente de iconos incluida en Expo Go, así que no hace falta compilar nada nativo.
