@@ -24,16 +24,15 @@ const PADDING_BOTTOM = 26;
 interface PortfolioChartProps {
   data: PortfolioPoint[];
   height?: number;
-  showLegend?: boolean;
 }
 
 /**
- * Stacked area chart of the portfolio evolution.
+ * Area chart of the portfolio evolution.
  *
- * The bottom band is the cash held in accounts and the band on top the money
- * invested. The line on top is the total.
+ * Only the total of each month is plotted: the app does not split the money
+ * between cash and invested, so the chart shows a single line and area.
  */
-export function PortfolioChart({ data, height = 220, showLegend = true }: PortfolioChartProps) {
+export function PortfolioChart({ data, height = 220 }: PortfolioChartProps) {
   const theme = useTheme();
   const [width, setWidth] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
@@ -54,22 +53,14 @@ export function PortfolioChart({ data, height = 220, showLegend = true }: Portfo
     };
     const yFor = (value: number) => PADDING_TOP + innerHeight * (1 - value / top);
 
-    const cashLine = data.map((point, index) => `${xFor(index)},${yFor(point.cash)}`).join(' L ');
-    const investedTop = data
-      .map((point, index) => `${xFor(index)},${yFor(point.cash + point.invested)}`)
-      .join(' L ');
     const totalLine = data.map((point, index) => `${xFor(index)},${yFor(point.total)}`).join(' L ');
-
-    const cashArea = data.length
-      ? `M ${PADDING_LEFT},${yFor(0)} L ${cashLine} L ${xFor(data.length - 1)},${yFor(0)} Z`
-      : '';
-    const investedArea = data.length
-      ? `M ${cashLine} L ${investedTop} Z`
+    const totalArea = data.length
+      ? `M ${PADDING_LEFT},${yFor(0)} L ${totalLine} L ${xFor(data.length - 1)},${yFor(0)} Z`
       : '';
 
     const gridValues = [0, 0.25, 0.5, 0.75, 1].map((ratio) => ratio * top);
 
-    return { innerWidth, innerHeight, top, xFor, yFor, cashArea, investedArea, totalLine, gridValues };
+    return { innerWidth, innerHeight, top, xFor, yFor, totalArea, totalLine, gridValues };
   }, [data, height, width]);
 
   const handleTouch = (locationX: number) => {
@@ -81,7 +72,6 @@ export function PortfolioChart({ data, height = 220, showLegend = true }: Portfo
 
   const activeIndex = selected !== null ? selected : data.length - 1;
   const activePoint = data[activeIndex];
-
 
   // Show at most 7 x-axis labels to avoid overlaps.
   const labelStep = Math.max(1, Math.ceil(data.length / 7));
@@ -103,13 +93,9 @@ export function PortfolioChart({ data, height = 220, showLegend = true }: Portfo
         {width > 0 ? (
           <Svg width={width} height={height}>
             <Defs>
-              <LinearGradient id="cashFill" x1="0" y1="0" x2="0" y2="1">
-                <Stop offset="0" stopColor={theme.colors.cash} stopOpacity={0.35} />
-                <Stop offset="1" stopColor={theme.colors.cash} stopOpacity={0.08} />
-              </LinearGradient>
-              <LinearGradient id="investedFill" x1="0" y1="0" x2="0" y2="1">
-                <Stop offset="0" stopColor={theme.colors.invested} stopOpacity={0.45} />
-                <Stop offset="1" stopColor={theme.colors.invested} stopOpacity={0.12} />
+              <LinearGradient id="totalFill" x1="0" y1="0" x2="0" y2="1">
+                <Stop offset="0" stopColor={theme.colors.primary} stopOpacity={0.35} />
+                <Stop offset="1" stopColor={theme.colors.primary} stopOpacity={0.08} />
               </LinearGradient>
             </Defs>
 
@@ -138,11 +124,8 @@ export function PortfolioChart({ data, height = 220, showLegend = true }: Portfo
                 );
               })}
 
-              {geometry.cashArea ? (
-                <Path d={geometry.cashArea} fill="url(#cashFill)" />
-              ) : null}
-              {geometry.investedArea ? (
-                <Path d={geometry.investedArea} fill="url(#investedFill)" />
+              {geometry.totalArea ? (
+                <Path d={geometry.totalArea} fill="url(#totalFill)" />
               ) : null}
               {geometry.totalLine ? (
                 <Path
@@ -204,37 +187,6 @@ export function PortfolioChart({ data, height = 220, showLegend = true }: Portfo
               {formatCurrency(activePoint.total)}
             </Text>
           </View>
-          <View style={styles.tooltipBreakdown}>
-            <View style={styles.tooltipItem}>
-              <View style={[styles.dot, { backgroundColor: theme.colors.cash }]} />
-              <Text style={[theme.typography.micro, { color: theme.colors.textSecondary }]}>
-                Efectivo {formatCurrency(activePoint.cash, { decimals: 0 })}
-              </Text>
-            </View>
-            <View style={styles.tooltipItem}>
-              <View style={[styles.dot, { backgroundColor: theme.colors.invested }]} />
-              <Text style={[theme.typography.micro, { color: theme.colors.textSecondary }]}>
-                Invertido {formatCurrency(activePoint.invested, { decimals: 0 })}
-              </Text>
-            </View>
-          </View>
-        </View>
-      ) : null}
-
-      {showLegend ? (
-        <View style={styles.legend}>
-          <View style={styles.legendItem}>
-            <View style={[styles.legendDot, { backgroundColor: theme.colors.cash }]} />
-            <Text style={[theme.typography.caption, { color: theme.colors.textSecondary }]}>
-              Efectivo
-            </Text>
-          </View>
-          <View style={styles.legendItem}>
-            <View style={[styles.legendDot, { backgroundColor: theme.colors.invested }]} />
-            <Text style={[theme.typography.caption, { color: theme.colors.textSecondary }]}>
-              Invertido
-            </Text>
-          </View>
         </View>
       ) : null}
     </View>
@@ -262,34 +214,5 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     gap: 12,
     paddingTop: 12,
-  },
-  tooltipBreakdown: {
-    alignItems: 'flex-end',
-    gap: 4,
-  },
-  tooltipItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  dot: {
-    width: 7,
-    height: 7,
-    borderRadius: 4,
-  },
-  legend: {
-    flexDirection: 'row',
-    gap: 16,
-    paddingTop: 12,
-  },
-  legendItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  legendDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
   },
 });

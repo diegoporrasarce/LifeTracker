@@ -25,6 +25,8 @@ interface ScreenProps {
   variant?: 'tabs' | 'stack';
   /** Extra space kept below the last element. */
   bottomSpacing?: number;
+  /** Rendered on top of the content, pinned to the bottom-right corner. */
+  overlay?: ReactNode;
 }
 
 /**
@@ -42,6 +44,7 @@ export function Screen({
   scrollProps,
   variant = 'tabs',
   bottomSpacing = 32,
+  overlay,
 }: ScreenProps) {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
@@ -76,10 +79,26 @@ export function Screen({
         <View style={{ paddingHorizontal: theme.spacing.md }}>{header}</View>
       ) : null}
       {body}
+      {overlay ? (
+        <View
+          pointerEvents="box-none"
+          style={[styles.overlay, { padding: theme.spacing.md }]}>
+          {overlay}
+        </View>
+      ) : null}
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
+  overlay: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    justifyContent: 'flex-end',
+    alignItems: 'flex-end',
+  },
 });

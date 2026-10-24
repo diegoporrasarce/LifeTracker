@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { PortfolioChart } from '@/components/charts/portfolio-chart';
 import { AccountForm } from '@/components/forms/account-form';
@@ -13,11 +13,9 @@ import { Header } from '@/components/ui/header';
 import { IconButton } from '@/components/ui/icon-button';
 import { Screen } from '@/components/ui/screen';
 import { Segmented } from '@/components/ui/segmented';
-import { StackedBar } from '@/components/ui/stacked-bar';
 import { useTheme } from '@/hooks/use-theme';
 import { useApp } from '@/store/app-provider';
-import { monthlyChange, portfolioSeries, portfolioTotals } from '@/store/selectors';
-import type { Account } from '@/store/types';
+import { debtSummary, monthlyChange, portfolioSeries, portfolioTotals } from '@/store/selectors';
 import { addMonths, currentMonthKey } from '@/utils/date';
 import { formatCurrency, formatPercent } from '@/utils/format';
 
@@ -31,13 +29,14 @@ const RANGE_OPTIONS = [
 
 export default function PortfolioScreen() {
   const theme = useTheme();
-  const { state, addAccount, updateAccount, removeAccount } = useApp();
+  const { state, addAccount } = useApp();
 
   const [range, setRange] = useState<Range>('12m');
   const [formVisible, setFormVisible] = useState(false);
-  const [editing, setEditing] = useState<Account | null>(null);
 
   const totals = useMemo(() => portfolioTotals(state.accounts), [state.accounts]);
+  const debts = useMemo(() => debtSummary(state.debts), [state.debts]);
+  const netDebt = debts.receivableMoney - debts.payableMoney;
 
   const series = useMemo(() => {
     const current = currentMonthKey();
@@ -50,12 +49,6 @@ export default function PortfolioScreen() {
   const positive = (change?.value ?? 0) >= 0;
 
   const openNew = () => {
-    setEditing(null);
-    setFormVisible(true);
-  };
-
-  const openEdit = (account: Account) => {
-    setEditing(account);
     setFormVisible(true);
   };
 
@@ -113,36 +106,46 @@ export default function PortfolioScreen() {
             </Text>
           </View>
         ) : null}
-
-        <View style={styles.breakdown}>
-          <StackedBar
-            segments={[
-              {
-                label: 'Efectivo',
-                value: totals.cash,
-                color: theme.colors.cash,
-                valueLabel: formatCurrency(totals.cash, { decimals: 0 }),
-              },
-              {
-                label: 'Invertido',
-                value: totals.invested,
-                color: theme.colors.invested,
-                valueLabel: formatCurrency(totals.invested, { decimals: 0 }),
-              },
-            ]}
-          />
-        </View>
       </Card>
 
       <View style={styles.section}>
-        <Card>
-          <View style={styles.chartHeader}>
-            <Text style={[theme.typography.subheading, { color: theme.colors.text }]}>
-              Evolución mensual
-            </Text>
-            <View style={styles.rangePicker}>
-              <Segmented options={RANGE_OPTIONS} value={range} onChange={setRange} />
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => router.push('/deudas')}
+          style={({ pressed }) => ({ opacity: pressed ? 0.9 : 1 })}>
+          <Card>
+            <View style={styles.debtsRow}>
+              <View style={styles.debtsText}>
+                <Text style={[theme.typography.subheading, { color: theme.colors.text }]}>
+                  Deudas
+                </Text>
+                <Text style={[theme.typography.caption, { color: theme.colors.textSecondary }]}>
+                  Me deben {formatCurrency(debts.receivableMoney)} · Yo debo{' '}
+                  {formatCurrency(debts.payableMoney)}
+                </Text>
+              </View>
+              <View style={styles.debtsRight}>
+                <Text
+                  style={[
+                    theme.typography.bodyStrong,
+                    { color: netDebt >= 0 ? theme.colors.success : theme.colors.danger },
+                  ]}>
+                  {formatCurrency(netDebt, { showSign: true })}
+                </Text>
+                <Ionicons name="chevron-forward" size={18} color={theme.colors.textTertiary} />
+              </View>
             </View>
+          </Card>
+        </Pressable>
+      </View>
+
+      <View style={styles.section}>
+        <Card>
+          <Text style={[theme.typography.subheading, { color: theme.colors.text }]}>
+            Evolución mensual
+          </Text>
+          <View style={styles.rangePicker}>
+            <Segmented options={RANGE_OPTIONS} value={range} onChange={setRange} />
           </View>
           <PortfolioChart data={series} />
         </Card>
@@ -184,16 +187,8 @@ export default function PortfolioScreen() {
 
       <AccountForm
         visible={formVisible}
-        account={editing}
         onClose={() => setFormVisible(false)}
-        onSubmit={(input) => {
-          if (editing) {
-            updateAccount(editing.id, input);
-          } else {
-            addAccount(input);
-          }
-        }}
-        onDelete={editing ? () => removeAccount(editing.id) : undefined}
+        onSubmit={(input) => addAccount(input)}
       />
     </Screen>
   );
@@ -227,22 +222,13 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     borderRadius: 999,
   },
-  breakdown: {
-    marginTop: 18,
-  },
   section: {
     marginTop: 16,
     gap: 12,
   },
-  chartHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 12,
-    marginBottom: 12,
-  },
   rangePicker: {
-    width: 160,
+    marginTop: 12,
+    marginBottom: 16,
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -251,5 +237,19 @@ const styles = StyleSheet.create({
   },
   list: {
     gap: 10,
+  },
+  debtsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  debtsText: {
+    flex: 1,
+    gap: 2,
+  },
+  debtsRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
 });

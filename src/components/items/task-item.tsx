@@ -9,6 +9,8 @@ interface TaskItemProps {
   task: Task;
   onToggle: () => void;
   onPress: () => void;
+  /** Shows the trash button on the right side of the row. */
+  onDelete?: () => void;
 }
 
 export function priorityColor(priority: Priority, theme: ReturnType<typeof useTheme>): string {
@@ -17,7 +19,7 @@ export function priorityColor(priority: Priority, theme: ReturnType<typeof useTh
   return theme.colors.textTertiary;
 }
 
-export function TaskItem({ task, onToggle, onPress }: TaskItemProps) {
+export function TaskItem({ task, onToggle, onPress, onDelete }: TaskItemProps) {
   const theme = useTheme();
   const overdue = !task.done && task.dueDate ? task.dueDate < todayISO() : false;
 
@@ -102,6 +104,24 @@ export function TaskItem({ task, onToggle, onPress }: TaskItemProps) {
           ) : null}
         </View>
       </View>
+
+      {onDelete ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`Eliminar ${task.title}`}
+          hitSlop={8}
+          onPress={onDelete}
+          style={({ pressed }) => [
+            styles.deleteButton,
+            {
+              backgroundColor: theme.colors.surfaceAlt,
+              borderRadius: theme.radius.sm,
+              opacity: pressed ? 0.5 : 1,
+            },
+          ]}>
+          <Ionicons name="trash-outline" size={17} color={theme.colors.textSecondary} />
+        </Pressable>
+      ) : null}
     </Pressable>
   );
 }
@@ -142,5 +162,12 @@ const styles = StyleSheet.create({
     width: 7,
     height: 7,
     borderRadius: 4,
+  },
+  deleteButton: {
+    width: 30,
+    height: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 1,
   },
 });

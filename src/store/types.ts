@@ -60,16 +60,6 @@ export interface Account {
   snapshots: AccountSnapshot[];
 }
 
-export interface FixedExpense {
-  id: ID;
-  name: string;
-  amount: number;
-  category: string;
-  /** Day of the month the expense is charged. */
-  dayOfMonth?: number;
-  active: boolean;
-}
-
 export type DebtDirection = 'they_owe_me' | 'i_owe';
 
 export interface Debt {
@@ -89,49 +79,97 @@ export interface Debt {
   settledAt?: string;
 }
 
+export type NoteColor =
+  | 'yellow'
+  | 'orange'
+  | 'pink'
+  | 'red'
+  | 'purple'
+  | 'blue'
+  | 'cyan'
+  | 'green'
+  | 'teal'
+  | 'gray';
+
+/** Half-open character range `[start, end)` marked as bold. */
+export interface BoldRange {
+  start: number;
+  end: number;
+}
+
+export interface Note {
+  id: ID;
+  folderId: ID | null;
+  title: string;
+  content: string;
+  color: NoteColor;
+  pinned: boolean;
+  archived: boolean;
+  /** Portions of `content` shown in bold. Missing on older notes. */
+  boldRanges?: BoldRange[];
+  /** Position when notes are sorted manually. Lower comes first. */
+  order?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface NoteFolder {
+  id: ID;
+  name: string;
+  color: NoteColor;
+  createdAt: string;
+}
+
 export interface AppSettings {
-  /** Rough monthly income, used to estimate the balance after fixed expenses. */
+  /** Rough monthly income, shown on the home screen. */
   monthlyIncome: number;
+  /** Name used to greet the user on the home screen. */
+  userName: string;
 }
 
 export interface AppState {
   tasks: Task[];
   events: CalendarEvent[];
   accounts: Account[];
-  expenses: FixedExpense[];
   debts: Debt[];
+  notes: Note[];
+  noteFolders: NoteFolder[];
   settings: AppSettings;
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
   monthlyIncome: 0,
+  userName: 'Diego',
 };
 
 export const EMPTY_STATE: AppState = {
   tasks: [],
   events: [],
   accounts: [],
-  expenses: [],
   debts: [],
+  notes: [],
+  noteFolders: [],
   settings: DEFAULT_SETTINGS,
 };
+
+export const NOTE_COLORS: NoteColor[] = [
+  'yellow',
+  'orange',
+  'pink',
+  'red',
+  'purple',
+  'blue',
+  'cyan',
+  'green',
+  'teal',
+  'gray',
+];
 
 export const PRIORITY_LABELS: Record<Priority, string> = {
   low: 'Baja',
   medium: 'Media',
   high: 'Alta',
 };
-
-export const EXPENSE_CATEGORIES = [
-  'Vivienda',
-  'Suministros',
-  'Suscripciones',
-  'Transporte',
-  'Comida',
-  'Salud',
-  'Ocio',
-  'Otros',
-] as const;
 
 export const DEBT_KIND_LABELS: Record<Debt['kind'], string> = {
   money: 'Dinero',

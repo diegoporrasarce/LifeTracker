@@ -11,18 +11,26 @@ import { TextField } from '@/components/ui/text-field';
 import { useTheme } from '@/hooks/use-theme';
 import { useApp } from '@/store/app-provider';
 import { parseState, serialiseState } from '@/store/storage';
+import { DEFAULT_SETTINGS } from '@/store/types';
 
 export default function SettingsScreen() {
   const theme = useTheme();
-  const { state, setMonthlyIncome, loadSampleData, resetAll, replaceState } = useApp();
+  const { state, setMonthlyIncome, setUserName, loadSampleData, resetAll, replaceState } = useApp();
 
   const [income, setIncome] = useState(state.settings.monthlyIncome);
+  const [name, setName] = useState(state.settings.userName);
   const [importText, setImportText] = useState('');
   const [message, setMessage] = useState<string | null>(null);
 
   const saveIncome = (value: number) => {
     setIncome(value);
     setMonthlyIncome(value);
+  };
+
+  const saveName = () => {
+    const cleanName = name.trim();
+    setName(cleanName);
+    setUserName(cleanName);
   };
 
   const handleExport = async () => {
@@ -47,6 +55,7 @@ export default function SettingsScreen() {
       const next = parseState(raw);
       replaceState(next);
       setIncome(next.settings.monthlyIncome);
+      setName(next.settings.userName);
       setImportText('');
       setMessage('Copia importada correctamente.');
     } catch (error) {
@@ -91,6 +100,7 @@ export default function SettingsScreen() {
         onPress: () => {
           resetAll();
           setIncome(0);
+          setName(DEFAULT_SETTINGS.userName);
           setMessage('Todos los datos se han borrado.');
         },
       },
@@ -105,21 +115,44 @@ export default function SettingsScreen() {
 
       <Card>
         <Text style={[theme.typography.subheading, { color: theme.colors.text }]}>
-          Ingresos mensuales
+          Tu nombre
         </Text>
         <Text style={[theme.typography.caption, { color: theme.colors.textSecondary }]}>
-          Una estimación sirve para saber cuánto te queda después de los gastos fijos.
+          Se usa para saludarte en la pantalla de inicio.
         </Text>
 
-        <View style={styles.incomeField}>
-          <AmountField
-            value={income}
-            onChange={saveIncome}
-            placeholder="0,00"
-            hint="Se guarda al instante en el dispositivo"
+        <View style={styles.nameField}>
+          <TextField
+            placeholder="Ej. Diego"
+            value={name}
+            onChangeText={setName}
+            onBlur={saveName}
+            autoCapitalize="words"
+            returnKeyType="done"
+            onSubmitEditing={saveName}
           />
         </View>
       </Card>
+
+      <View style={styles.section}>
+        <Card>
+          <Text style={[theme.typography.subheading, { color: theme.colors.text }]}>
+            Ingresos mensuales
+          </Text>
+          <Text style={[theme.typography.caption, { color: theme.colors.textSecondary }]}>
+            Una estimación de lo que ingresas al mes, para tenerla a mano en la pantalla de inicio.
+          </Text>
+
+          <View style={styles.incomeField}>
+            <AmountField
+              value={income}
+              onChange={saveIncome}
+              placeholder="0,00"
+              hint="Se guarda al instante en el dispositivo"
+            />
+          </View>
+        </Card>
+      </View>
 
       <View style={styles.section}>
         <Card>
@@ -183,8 +216,7 @@ export default function SettingsScreen() {
           </View>
 
           <Text style={[theme.typography.caption, { color: theme.colors.textSecondary }]}>
-            Elimina de este dispositivo tareas, eventos, cuentas, gastos y deudas. No se puede
-            deshacer.
+            Elimina de este dispositivo tareas, eventos, cuentas y deudas. No se puede deshacer.
           </Text>
 
           <Button label="Borrar todos los datos" variant="danger" onPress={confirmErase} full />
@@ -224,6 +256,9 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   incomeField: {
+    marginTop: 12,
+  },
+  nameField: {
     marginTop: 12,
   },
   rowTitle: {

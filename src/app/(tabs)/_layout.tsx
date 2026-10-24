@@ -3,6 +3,10 @@ import { Tabs } from 'expo-router/js-tabs';
 
 import { useTheme } from '@/hooks/use-theme';
 
+export const unstable_settings = {
+  anchor: 'inicio',
+};
+
 export default function TabsLayout() {
   const theme = useTheme();
 
@@ -10,11 +14,11 @@ export default function TabsLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: theme.colors.primary,
-        tabBarInactiveTintColor: theme.colors.textTertiary,
+        tabBarActiveTintColor: (theme.colors.primary ?? '#2F6BFF') as string,
+        tabBarInactiveTintColor: (theme.colors.textTertiary ?? '#8D97A4') as string,
         tabBarStyle: {
-          backgroundColor: theme.colors.tabBar,
-          borderTopColor: theme.colors.border,
+          backgroundColor: ((theme.colors as any).tabBar ?? theme.colors.surface) as string,
+          borderTopColor: (theme.colors.border ?? '#E5E7EB') as string,
         },
         tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
       }}>
@@ -23,7 +27,7 @@ export default function TabsLayout() {
         options={{
           title: 'Tareas',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="checkmark-done-outline" size={size} color={color} />
+            <Ionicons name="checkmark-done-outline" size={size} color={color as string} />
           ),
         }}
       />
@@ -32,7 +36,16 @@ export default function TabsLayout() {
         options={{
           title: 'Calendario',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="calendar-outline" size={size} color={color} />
+            <Ionicons name="calendar-outline" size={size} color={color as string} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="inicio"
+        options={{
+          title: 'Inicio',
+          tabBarIcon: ({ color, size, focused }) => (
+            <Ionicons name={focused ? 'home' : 'home-outline'} size={size} color={color as string} />
           ),
         }}
       />
@@ -41,25 +54,16 @@ export default function TabsLayout() {
         options={{
           title: 'Cartera',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="pie-chart-outline" size={size} color={color} />
+            <Ionicons name="pie-chart-outline" size={size} color={color as string} />
           ),
         }}
       />
       <Tabs.Screen
-        name="gastos"
+        name="notas"
         options={{
-          title: 'Gastos',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="card-outline" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="deudas"
-        options={{
-          title: 'Deudas',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="swap-horizontal-outline" size={size} color={color} />
+          title: 'Notas',
+          tabBarIcon: ({ color, size, focused }) => (
+            <Ionicons name={focused ? 'document-text' : 'document-text-outline'} size={size} color={color as string} />
           ),
         }}
       />

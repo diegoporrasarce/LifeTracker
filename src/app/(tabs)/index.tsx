@@ -2,12 +2,13 @@ import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Alert, Platform, StyleSheet, Text, View } from 'react-native';
 
 import { TaskForm } from '@/components/forms/task-form';
 import { TaskItem } from '@/components/items/task-item';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
+import { Fab } from '@/components/ui/fab';
 import { Header } from '@/components/ui/header';
 import { IconButton } from '@/components/ui/icon-button';
 import { Screen } from '@/components/ui/screen';
@@ -119,8 +120,28 @@ export default function TasksScreen() {
     setFormVisible(true);
   };
 
+  const handleDelete = (task: Task) => {
+    const confirmDelete = () => {
+      void Haptics.impactAsync();
+      removeTask(task.id);
+    };
+
+    // `Alert` is a no-op on web, so there the task is deleted straight away.
+    if (Platform.OS === 'web') {
+      confirmDelete();
+      return;
+    }
+
+    Alert.alert('Eliminar tarea', `¿Quieres eliminar "${task.title}"?`, [
+      { text: 'Cancelar', style: 'cancel' },
+      { text: 'Eliminar', style: 'destructive', onPress: confirmDelete },
+    ]);
+  };
+
   return (
     <Screen
+      bottomSpacing={104}
+      overlay={<Fab onPress={openNew} accessibilityLabel="Nueva tarea" />}
       header={
         <Header
           title="Tareas"
@@ -180,6 +201,7 @@ export default function TasksScreen() {
                   task={task}
                   onToggle={() => handleToggle(task)}
                   onPress={() => openEdit(task)}
+                  onDelete={() => handleDelete(task)}
                 />
               ))}
             </View>

@@ -1,8 +1,8 @@
 /**
  * Derived data.
  *
- * All the maths around balances, portfolio evolution, expenses and debts
- * lives here so screens only have to render results.
+ * All the maths around balances, portfolio evolution and debts lives here so
+ * screens only have to render results.
  */
 
 import { addMonths, currentMonthKey, monthKeyRange, type MonthKey } from '@/utils/date';
@@ -11,7 +11,6 @@ import type {
   Account,
   AccountSnapshot,
   Debt,
-  FixedExpense,
   ID,
 } from '@/store/types';
 
@@ -126,24 +125,6 @@ export function monthlyChange(series: PortfolioPoint[]): { value: number; percen
   const value = current.total - previous.total;
   const percentage = previous.total === 0 ? 0 : (value / Math.abs(previous.total)) * 100;
   return { value, percentage };
-}
-
-export function expenseSummary(expenses: FixedExpense[]) {
-  const active = expenses.filter((expense) => expense.active);
-  const monthly = active.reduce((total, expense) => total + expense.amount, 0);
-
-  const byCategory = new Map<string, number>();
-  for (const expense of active) {
-    byCategory.set(expense.category, (byCategory.get(expense.category) ?? 0) + expense.amount);
-  }
-
-  return {
-    monthly,
-    annual: monthly * 12,
-    byCategory: [...byCategory.entries()]
-      .map(([category, amount]) => ({ category, amount }))
-      .sort((a, b) => b.amount - a.amount),
-  };
 }
 
 export function debtSummary(debts: Debt[]) {

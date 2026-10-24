@@ -9,13 +9,15 @@ import { ModalSheet } from '@/components/ui/modal-sheet';
 import { TextField } from '@/components/ui/text-field';
 import { useTheme } from '@/hooks/use-theme';
 import type { SnapshotInput } from '@/store/app-provider';
-import type { AccountSnapshot } from '@/store/types';
+import type { AccountSnapshot, AccountType } from '@/store/types';
 import { addMonths, currentMonthKey, monthLabelCapitalised } from '@/utils/date';
 import { formatCurrency } from '@/utils/format';
 
 interface SnapshotFormProps {
   visible: boolean;
   snapshot?: AccountSnapshot | null;
+  /** Type of the account the balance belongs to. */
+  accountType: AccountType;
   onClose: () => void;
   onSubmit: (input: SnapshotInput) => void;
   onDelete?: () => void;
@@ -24,6 +26,7 @@ interface SnapshotFormProps {
 export function SnapshotForm({
   visible,
   snapshot,
+  accountType,
   onClose,
   onSubmit,
   onDelete,
@@ -34,16 +37,24 @@ export function SnapshotForm({
   const [invested, setInvested] = useState(0);
   const [note, setNote] = useState('');
 
+  const isBroker = accountType === 'broker';
+
   useEffect(() => {
     if (!visible) return;
     setMonth(snapshot?.month ?? currentMonthKey());
     setCash(snapshot?.cash ?? 0);
-    setInvested(snapshot?.invested ?? 0);
+    // A bank never holds invested money.
+    setInvested(isBroker ? (snapshot?.invested ?? 0) : 0);
     setNote(snapshot?.note ?? '');
-  }, [visible, snapshot]);
+  }, [visible, snapshot, isBroker]);
 
   const handleSubmit = () => {
-    onSubmit({ month, cash, invested, note: note.trim() || undefined });
+    onSubmit({
+      month,
+      cash,
+      invested: isBroker ? invested : 0,
+      note: note.trim() || undefined,
+    });
     onClose();
   };
 
@@ -100,36 +111,47 @@ export function SnapshotForm({
         ) : null}
       </View>
 
-      <AmountField
-        label="Dinero en cartera"
-        value={cash}
-        onChange={setCash}
-        hint="Efectivo y saldos disponibles"
-      />
+      {isBroker ? (
+        <>
+          <AmountField
+            label="Efectivo"
+            value={cash}
+            onChange={setCash}
+            hint="Efectivo y saldos disponibles"
+          />
 
-      <AmountField
-        label="Dinero invertido"
-        value={invested}
-        onChange={setInvested}
-        hint="Acciones, fondos, cripto, plazos..."
-      />
+          <AmountField
+            label="Invertido"
+            value={invested}
+            onChange={setInvested}
+            hint="Acciones, fondos, cripto, plazos..."
+          />
 
-      <View
-        style={[
-          styles.total,
-          {
-            backgroundColor: theme.colors.surfaceAlt,
-            borderRadius: theme.radius.md,
-          },
-        ]}>
-        <Ionicons name="wallet-outline" size={16} color={theme.colors.textSecondary} />
-        <Text style={[theme.typography.body, { color: theme.colors.textSecondary, flex: 1 }]}>
-          Total
-        </Text>
-        <Text style={[theme.typography.bodyStrong, { color: theme.colors.text }]}>
-          {formatCurrency(cash + invested)}
-        </Text>
-      </View>
+          <View
+            style={[
+              styles.total,
+              {
+                backgroundColor: theme.colors.surfaceAlt,
+                borderRadius: theme.radius.md,
+              },
+            ]}>
+            <Ionicons name="wallet-outline" size={16} color={theme.colors.textSecondary} />
+            <Text style={[theme.typography.body, { color: theme.colors.textSecondary, flex: 1 }]}>
+              Total
+            </Text>
+            <Text style={[theme.typography.bodyStrong, { color: theme.colors.text }]}>
+              {formatCurrency(cash + invested)}
+            </Text>
+          </View>
+        </>
+      ) : (
+        <AmountField
+          label="Dinero en la cuenta"
+          value={cash}
+          onChange={setCash}
+          hint="Saldo disponible en el banco"
+        />
+      )}
 
       <TextField
         label="Nota (opcional)"

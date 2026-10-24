@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useTheme } from '@/hooks/use-theme';
 import { ACCOUNT_TYPE_LABELS, type Account } from '@/store/types';
 import { currentBalance } from '@/store/selectors';
+import { monthLabelCapitalised } from '@/utils/date';
 import { formatCurrency } from '@/utils/format';
 
 interface AccountItemProps {
@@ -54,10 +55,7 @@ export function AccountItem({ account, onPress }: AccountItemProps) {
 
         <Text style={[theme.typography.caption, { color: theme.colors.textTertiary }]}>
           {balance.month
-            ? `${formatCurrency(balance.cash, { decimals: 0 })} en cartera · ${formatCurrency(
-                balance.invested,
-                { decimals: 0 },
-              )} invertido`
+            ? `Registrado en ${monthLabelCapitalised(balance.month)}`
             : 'Sin balances registrados'}
         </Text>
       </View>

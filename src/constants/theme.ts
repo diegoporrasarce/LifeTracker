@@ -31,11 +31,6 @@ export const Colors = {
     warning: '#B9760A',
     warningSoft: '#FCF0DA',
 
-    cash: '#2F6BFF',
-    cashSoft: '#E8EFFF',
-    invested: '#7A5AF8',
-    investedSoft: '#EEE9FE',
-
     tabBar: '#FFFFFF',
     shadow: '#0A1020',
   },
@@ -60,11 +55,6 @@ export const Colors = {
     dangerSoft: '#331417',
     warning: '#FFB84D',
     warningSoft: '#33240D',
-
-    cash: '#5B8BFF',
-    cashSoft: '#17203A',
-    invested: '#A78BFA',
-    investedSoft: '#211B3A',
 
     tabBar: '#0F131A',
     shadow: '#000000',

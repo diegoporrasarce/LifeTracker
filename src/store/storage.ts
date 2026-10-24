@@ -8,7 +8,7 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import { EMPTY_STATE, type AppState } from '@/store/types';
+import { DEFAULT_SETTINGS, EMPTY_STATE, type AppState } from '@/store/types';
 
 const STORAGE_KEY = 'lifetracker:v1:state';
 
@@ -29,14 +29,19 @@ export function normaliseState(payload: unknown): AppState {
     typeof settings.monthlyIncome === 'number' && Number.isFinite(settings.monthlyIncome)
       ? settings.monthlyIncome
       : 0;
+  const userName =
+    typeof settings.userName === 'string' && settings.userName.trim()
+      ? settings.userName.trim()
+      : DEFAULT_SETTINGS.userName;
 
   return {
     tasks: asArray<AppState['tasks'][number]>(payload.tasks),
     events: asArray<AppState['events'][number]>(payload.events),
     accounts: asArray<AppState['accounts'][number]>(payload.accounts),
-    expenses: asArray<AppState['expenses'][number]>(payload.expenses),
     debts: asArray<AppState['debts'][number]>(payload.debts),
-    settings: { monthlyIncome },
+    notes: asArray<AppState['notes'][number]>((payload as Record<string, unknown>).notes),
+    noteFolders: asArray<AppState['noteFolders'][number]>((payload as Record<string, unknown>).noteFolders),
+    settings: { monthlyIncome, userName },
   };
 }
 

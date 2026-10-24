@@ -12,7 +12,6 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { Header } from '@/components/ui/header';
 import { IconButton } from '@/components/ui/icon-button';
 import { Screen } from '@/components/ui/screen';
-import { StackedBar } from '@/components/ui/stacked-bar';
 import { useTheme } from '@/hooks/use-theme';
 import { useApp } from '@/store/app-provider';
 import { currentBalance, findAccount, portfolioSeries } from '@/store/selectors';
@@ -131,25 +130,6 @@ export default function AccountDetailScreen() {
             </Text>
           </View>
         ) : null}
-
-        <View style={styles.breakdown}>
-          <StackedBar
-            segments={[
-              {
-                label: 'Efectivo',
-                value: balance.cash,
-                color: theme.colors.cash,
-                valueLabel: formatCurrency(balance.cash, { decimals: 0 }),
-              },
-              {
-                label: 'Invertido',
-                value: balance.invested,
-                color: theme.colors.invested,
-                valueLabel: formatCurrency(balance.invested, { decimals: 0 }),
-              },
-            ]}
-          />
-        </View>
       </Card>
 
       <View style={styles.section}>
@@ -192,10 +172,6 @@ export default function AccountDetailScreen() {
                     <Text style={[theme.typography.bodyStrong, { color: theme.colors.text }]}>
                       {monthLabelCapitalised(snapshot.month)}
                     </Text>
-                    <Text style={[theme.typography.caption, { color: theme.colors.textTertiary }]}>
-                      {formatCurrency(snapshot.cash, { decimals: 0 })} en cartera ·{' '}
-                      {formatCurrency(snapshot.invested, { decimals: 0 })} invertido
-                    </Text>
                     {snapshot.note ? (
                       <Text style={[theme.typography.micro, { color: theme.colors.textTertiary }]}>
                         {snapshot.note}
@@ -232,6 +208,7 @@ export default function AccountDetailScreen() {
       <SnapshotForm
         visible={snapshotFormVisible}
         snapshot={editingSnapshot}
+        accountType={account.type}
         onClose={() => setSnapshotFormVisible(false)}
         onSubmit={(input) => upsertSnapshot(account.id, input)}
         onDelete={
@@ -251,9 +228,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 6,
     marginTop: 8,
-  },
-  breakdown: {
-    marginTop: 18,
   },
   section: {
     marginTop: 16,

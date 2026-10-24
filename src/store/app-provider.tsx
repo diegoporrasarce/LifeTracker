@@ -18,14 +18,18 @@ import {
 
 import { loadState, saveState } from '@/store/storage';
 import { buildSampleState } from '@/store/sample-data';
-import { EMPTY_STATE, type Account, type AppState, type CalendarEvent, type Debt, type FixedExpense, type ID, type Task } from '@/store/types';
+import { EMPTY_STATE, type Account, type AppState, type CalendarEvent, type Debt, type ID, type Note, type NoteColor, type NoteFolder, type Task } from '@/store/types';
 import { createId } from '@/utils/id';
 
 export type TaskInput = Omit<Task, 'id' | 'createdAt' | 'completedAt'>;
 export type EventInput = Omit<CalendarEvent, 'id' | 'createdAt'>;
 export type AccountInput = Pick<Account, 'name' | 'type' | 'color'>;
-export type ExpenseInput = Omit<FixedExpense, 'id'>;
 export type DebtInput = Omit<Debt, 'id' | 'createdAt' | 'settledAt'>;
+export type NoteInput = Pick<
+  Note,
+  'folderId' | 'title' | 'content' | 'color' | 'pinned' | 'archived' | 'boldRanges'
+>;
+export type NoteFolderInput = Pick<NoteFolder, 'name' | 'color'>;
 
 export interface SnapshotInput {
   month: string;
@@ -54,15 +58,23 @@ interface AppContextValue {
   upsertSnapshot: (accountId: ID, snapshot: SnapshotInput) => void;
   removeSnapshot: (accountId: ID, snapshotId: ID) => void;
 
-  addExpense: (input: ExpenseInput) => void;
-  updateExpense: (id: ID, patch: Partial<ExpenseInput>) => void;
-  removeExpense: (id: ID) => void;
-
   addDebt: (input: DebtInput) => void;
   updateDebt: (id: ID, patch: Partial<DebtInput>) => void;
   removeDebt: (id: ID) => void;
 
+  addNoteFolder: (input: NoteFolderInput) => void;
+  updateNoteFolder: (id: ID, patch: Partial<NoteFolderInput>) => void;
+  removeNoteFolder: (id: ID) => void;
+
+  addNote: (input: NoteInput) => Note;
+  updateNote: (id: ID, patch: Partial<NoteInput>) => void;
+  toggleNotePin: (id: ID) => void;
+  archiveNote: (id: ID, archived?: boolean) => void;
+  removeNote: (id: ID) => void;
+  reorderNotes: (orderedIds: ID[]) => void;
+
   setMonthlyIncome: (value: number) => void;
+  setUserName: (value: string) => void;
   loadSampleData: () => void;
   resetAll: () => void;
   replaceState: (next: AppState) => void;
@@ -238,29 +250,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }));
   }, []);
 
-  const addExpense = useCallback((input: ExpenseInput) => {
-    setState((previous) => ({
-      ...previous,
-      expenses: [{ ...input, id: createId('exp') }, ...previous.expenses],
-    }));
-  }, []);
-
-  const updateExpense = useCallback((id: ID, patch: Partial<ExpenseInput>) => {
-    setState((previous) => ({
-      ...previous,
-      expenses: previous.expenses.map((expense) =>
-        expense.id === id ? { ...expense, ...patch } : expense,
-      ),
-    }));
-  }, []);
-
-  const removeExpense = useCallback((id: ID) => {
-    setState((previous) => ({
-      ...previous,
-      expenses: previous.expenses.filter((expense) => expense.id !== id),
-    }));
-  }, []);
-
   const addDebt = useCallback((input: DebtInput) => {
     setState((previous) => ({
       ...previous,
@@ -287,10 +276,103 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }));
   }, []);
 
+  const addNoteFolder = useCallback((input: NoteFolderInput) => {
+    setState((previous) => ({
+      ...previous,
+      noteFolders: [
+        { ...input, id: createId('folder'), createdAt: new Date().toISOString() },
+        ...previous.noteFolders,
+      ],
+    }));
+  }, []);
+
+  const updateNoteFolder = useCallback((id: ID, patch: Partial<NoteFolderInput>) => {
+    setState((previous) => ({
+      ...previous,
+      noteFolders: previous.noteFolders.map((folder) =>
+        folder.id === id ? { ...folder, ...patch } : folder,
+      ),
+    }));
+  }, []);
+
+  const removeNoteFolder = useCallback((id: ID) => {
+    setState((previous) => ({
+      ...previous,
+      noteFolders: previous.noteFolders.filter((folder) => folder.id !== id),
+      notes: previous.notes.map((note) => (note.folderId === id ? { ...note, folderId: null } : note)),
+    }));
+  }, []);
+
+  const addNote = useCallback((input: NoteInput): Note => {
+    const now = new Date().toISOString();
+    const note: Note = {
+      ...input,
+      id: createId('note'),
+      createdAt: now,
+      updatedAt: now,
+    };
+    setState((previous) => ({
+      ...previous,
+      notes: [note, ...previous.notes],
+    }));
+    return note;
+  }, []);
+
+  const updateNote = useCallback((id: ID, patch: Partial<NoteInput>) => {
+    setState((previous) => ({
+      ...previous,
+      notes: previous.notes.map((note) =>
+        note.id === id ? { ...note, ...patch, updatedAt: new Date().toISOString() } : note,
+      ),
+    }));
+  }, []);
+
+  const toggleNotePin = useCallback((id: ID) => {
+    setState((previous) => ({
+      ...previous,
+      notes: previous.notes.map((note) =>
+        note.id === id ? { ...note, pinned: !note.pinned, updatedAt: new Date().toISOString() } : note,
+      ),
+    }));
+  }, []);
+
+  const archiveNote = useCallback((id: ID, archived = true) => {
+    setState((previous) => ({
+      ...previous,
+      notes: previous.notes.map((note) =>
+        note.id === id ? { ...note, archived, updatedAt: new Date().toISOString() } : note,
+      ),
+    }));
+  }, []);
+
+  const removeNote = useCallback((id: ID) => {
+    setState((previous) => ({
+      ...previous,
+      notes: previous.notes.filter((note) => note.id !== id),
+    }));
+  }, []);
+
+  const reorderNotes = useCallback((orderedIds: ID[]) => {
+    const positions = new Map(orderedIds.map((noteId, index) => [noteId, index]));
+    setState((previous) => ({
+      ...previous,
+      notes: previous.notes.map((note) =>
+        positions.has(note.id) ? { ...note, order: positions.get(note.id) } : note,
+      ),
+    }));
+  }, []);
+
   const setMonthlyIncome = useCallback((value: number) => {
     setState((previous) => ({
       ...previous,
       settings: { ...previous.settings, monthlyIncome: Number.isFinite(value) ? value : 0 },
+    }));
+  }, []);
+
+  const setUserName = useCallback((value: string) => {
+    setState((previous) => ({
+      ...previous,
+      settings: { ...previous.settings, userName: value },
     }));
   }, []);
 
@@ -322,13 +404,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
       removeAccount,
       upsertSnapshot,
       removeSnapshot,
-      addExpense,
-      updateExpense,
-      removeExpense,
       addDebt,
       updateDebt,
       removeDebt,
+      addNoteFolder,
+      updateNoteFolder,
+      removeNoteFolder,
+      addNote,
+      updateNote,
+      toggleNotePin,
+      archiveNote,
+      removeNote,
+      reorderNotes,
       setMonthlyIncome,
+      setUserName,
       loadSampleData,
       resetAll,
       replaceState,
@@ -348,13 +437,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
       removeAccount,
       upsertSnapshot,
       removeSnapshot,
-      addExpense,
-      updateExpense,
-      removeExpense,
       addDebt,
       updateDebt,
       removeDebt,
+      addNoteFolder,
+      updateNoteFolder,
+      removeNoteFolder,
+      addNote,
+      updateNote,
+      toggleNotePin,
+      archiveNote,
+      removeNote,
+      reorderNotes,
       setMonthlyIncome,
+      setUserName,
       loadSampleData,
       resetAll,
       replaceState,

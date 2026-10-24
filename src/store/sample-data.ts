@@ -8,7 +8,7 @@
 import { addMonths, currentMonthKey, daysInMonth, parseMonthKey, pad2, todayISO } from '@/utils/date';
 import { createId } from '@/utils/id';
 
-import type { Account, AppState, CalendarEvent, Debt, FixedExpense, Task } from '@/store/types';
+import type { Account, AppState, CalendarEvent, Debt, Task } from '@/store/types';
 
 function dayIn(monthKey: string, day: number): string {
   const { year, month } = parseMonthKey(monthKey);
@@ -141,57 +141,6 @@ export function buildSampleState(): AppState {
     },
   ];
 
-  const expenses: FixedExpense[] = [
-    {
-      id: createId('exp'),
-      name: 'Alquiler',
-      amount: 750,
-      category: 'Vivienda',
-      dayOfMonth: 1,
-      active: true,
-    },
-    {
-      id: createId('exp'),
-      name: 'Luz y agua',
-      amount: 95,
-      category: 'Suministros',
-      dayOfMonth: 8,
-      active: true,
-    },
-    {
-      id: createId('exp'),
-      name: 'Suscripciones',
-      amount: 38.9,
-      category: 'Suscripciones',
-      dayOfMonth: 15,
-      active: true,
-    },
-    {
-      id: createId('exp'),
-      name: 'Gimnasio',
-      amount: 42,
-      category: 'Salud',
-      dayOfMonth: 3,
-      active: true,
-    },
-    {
-      id: createId('exp'),
-      name: 'Transporte',
-      amount: 55,
-      category: 'Transporte',
-      dayOfMonth: 20,
-      active: true,
-    },
-    {
-      id: createId('exp'),
-      name: 'Seguro del coche',
-      amount: 380,
-      category: 'Transporte',
-      dayOfMonth: 12,
-      active: false,
-    },
-  ];
-
   const debts: Debt[] = [
     {
       id: createId('debt'),
@@ -240,8 +189,9 @@ export function buildSampleState(): AppState {
     tasks,
     events,
     accounts,
-    expenses,
     debts,
-    settings: { monthlyIncome: 2400 },
+    notes: [],
+    noteFolders: [],
+    settings: { monthlyIncome: 2400, userName: 'Diego' },
   };
 }
